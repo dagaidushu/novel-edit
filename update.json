@@ -1,0 +1,8 @@
+{
+    "version":  "1.0.1",
+    "msiUrl":  "https://github.com/dagaidushu/novel-edit/releases/download/v1.0.1/NovelEdit-1.0.1.msi",
+    "portableUrl":  "https://github.com/dagaidushu/novel-edit/releases/download/v1.0.1/NovelEdit-Windows-x64-portable.zip",
+    "msiSha256":  "7acc24635e93162efb5cac567a107b1fa2d583f90bd358684d3aed20898ec15a",
+    "portableSha256":  "b009f7462406b3c82485201ae3f725920f9b8310166c6aef8b51b78a8e531ac7",
+    "notes":  "NovelEdit Windows 1.0.1"
+}
