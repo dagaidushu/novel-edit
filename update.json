@@ -1,8 +1,8 @@
 {
-    "version":  "1.0.3",
-    "msiUrl":  "https://github.com/dagaidushu/novel-edit/releases/download/v1.0.3/NovelEdit-1.0.3.msi",
-    "portableUrl":  "https://github.com/dagaidushu/novel-edit/releases/download/v1.0.3/NovelEdit-Windows-x64-portable.zip",
-    "msiSha256":  "768ea81a1cbe104bef56b6be1c824d75049ae060bc4eb6bf24e62c8e1e95776b",
-    "portableSha256":  "ab7630daf98baee0b9d9d745a6d790ce62c6ff147300924019e6d4f47c60b0e1",
-    "notes":  "Add custom data directory migration and clarify portable launcher"
+    "version":  "1.0.4",
+    "msiUrl":  "https://github.com/dagaidushu/novel-edit/releases/download/v1.0.4/NovelEdit-1.0.4.msi",
+    "portableUrl":  "https://github.com/dagaidushu/novel-edit/releases/download/v1.0.4/NovelEdit-Windows-x64-portable.zip",
+    "msiSha256":  "5dc308eef1a336a761cd4324303dd2f8fc4302776d52d9959b37827c6d106c85",
+    "portableSha256":  "b2368ee249ad9cfd1923b39251dd9e42de97ba31bf53ef293be0c49784b6a952",
+    "notes":  "Automatic verified in-place updates for portable ZIP installations"
 }

@@ -52,6 +52,14 @@ fun main()=application {
         height = restoredWindow.height.dp,
         position = if (restoredWindow.x != null && restoredWindow.y != null) androidx.compose.ui.window.WindowPosition(restoredWindow.x.dp, restoredWindow.y.dp) else androidx.compose.ui.window.WindowPosition.PlatformDefault,
     )
+    state.pendingPortableUpdateScript?.let { script ->
+        LaunchedEffect(script) {
+            state.launchPortableUpdate(script)
+            windowStore.save(windowState)
+            state.close()
+            exitApplication()
+        }
+    }
     Window(onCloseRequest={windowStore.save(windowState);state.close();exitApplication()},title="NovelEdit",icon=painterResource("branding/noveledit-icon.png"),state=windowState){
         MaterialTheme(colorScheme=lightColorScheme(primary=Brand,secondary=Warm,background=Paper,surface=Color.White,onSurface=Ink),typography=Typography(bodyLarge=androidx.compose.ui.text.TextStyle(fontSize=15.sp))){NovelEditApp(state)}
     }

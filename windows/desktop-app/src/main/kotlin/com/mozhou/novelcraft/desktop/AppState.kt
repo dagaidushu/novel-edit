@@ -40,6 +40,7 @@ class AppState(val paths:AppPaths=AppPaths.resolve()) : AutoCloseable {
 
     var section by mutableStateOf(MainSection.SHELF)
     var tab by mutableStateOf(WorkspaceTab.WRITE)
+    var pendingPortableUpdateScript by mutableStateOf<Path?>(null); private set
     var projects by mutableStateOf(db.projects()); private set
     var selectedProject by mutableStateOf<NovelProject?>(null); private set
     var chapters by mutableStateOf(emptyList<Chapter>()); private set
@@ -235,7 +236,32 @@ class AppState(val paths:AppPaths=AppPaths.resolve()) : AutoCloseable {
             .onFailure { message=it.message ?: "无法设置数据目录" }
     }
     fun checkForUpdates(notifyWhenLatest:Boolean=true){runUpdateTask{val result=withContext(Dispatchers.IO){updates.check(updateManifestUrl,AppVersion.CURRENT,updateProxyUrl)};availableUpdate=result;if(result!=null||notifyWhenLatest)message=if(result==null)"当前已是最新版本" else "发现 NovelEdit ${result.version}"}}
-    fun downloadUpdate(){val update=availableUpdate?:return;runUpdateTask{val portable=paths.portable;val extension=if(portable)"zip" else "msi";val target=paths.root.resolve("updates").resolve("NovelEdit-${update.version}.$extension");withContext(Dispatchers.IO){updates.download(update,portable,target,updateProxyUrl);java.awt.Desktop.getDesktop().open(target.toFile())};message="更新包已校验并打开，请按安装程序完成更新"}}
+    fun downloadUpdate(){val update=availableUpdate?:return;runUpdateTask{val portable=paths.portable;val extension=if(portable)"zip" else "msi";val target=paths.root.resolve("updates").resolve("NovelEdit-${update.version}.$extension");val updater=withContext(Dispatchers.IO){updates.download(update,portable,target,updateProxyUrl);if(portable)createPortableUpdateScript(target)else null};if(updater!=null){message="更新包已校验，应用将自动退出、替换便携版程序并重新启动";pendingPortableUpdateScript=updater}else{java.awt.Desktop.getDesktop().open(target.toFile());message="更新包已校验并打开，请按安装程序完成更新"}}}
+    fun launchPortableUpdate(script:Path){java.awt.Desktop.getDesktop().open(script.toFile())}
+
+    private fun createPortableUpdateScript(zip:Path):Path{
+        val root=paths.root.parent ?: error("无法定位便携版目录")
+        require(Files.exists(root.resolve("NovelEdit-Portable.cmd"))){"便携版启动器缺失。请重新完整解压官方 ZIP 后，从 NovelEdit-Portable.cmd 启动应用"}
+        val stage=root.resolve(".noveledit-update")
+        val script=Files.createTempFile("noveledit-portable-update-", ".cmd")
+        fun ps(value:Path)=value.toAbsolutePath().toString().replace("'", "''")
+        val command="""
+            ${'$'}ErrorActionPreference='Stop'
+            Start-Sleep -Seconds 2
+            ${'$'}root='${ps(root)}'
+            ${'$'}zip='${ps(zip)}'
+            ${'$'}stage='${ps(stage)}'
+            Remove-Item -LiteralPath ${'$'}stage -Recurse -Force -ErrorAction SilentlyContinue
+            Expand-Archive -LiteralPath ${'$'}zip -DestinationPath ${'$'}stage -Force
+            Copy-Item -LiteralPath (Join-Path ${'$'}stage 'NovelEdit') -Destination ${'$'}root -Recurse -Force
+            Copy-Item -LiteralPath (Join-Path ${'$'}stage 'NovelEdit-Portable.cmd') -Destination ${'$'}root -Force
+            Remove-Item -LiteralPath ${'$'}stage -Recurse -Force
+            Remove-Item -LiteralPath ${'$'}zip -Force
+            Start-Process -FilePath (Join-Path ${'$'}root 'NovelEdit-Portable.cmd')
+        """.trimIndent().replace("\"", "\\\"").replace("\r", "").replace("\n", "; ")
+        Files.writeString(script, "@echo off\r\npowershell -NoProfile -ExecutionPolicy Bypass -Command \"$command\"\r\ndel \"%~f0\"\r\n")
+        return script
+    }
     fun syncSelectedProject(){
         val project=selectedProject?:run{message="请先打开要同步的作品";return}
         if(!cloudConfig.enabled){message="请先在设置中开启云同步";return}

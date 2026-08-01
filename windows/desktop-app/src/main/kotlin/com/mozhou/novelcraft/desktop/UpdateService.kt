@@ -21,7 +21,7 @@ data class UpdateInfo(
     fun checksum(portable: Boolean) = if (portable) portableSha256 else msiSha256
 }
 
-object AppVersion { const val CURRENT = "1.0.2" }
+object AppVersion { const val CURRENT = "1.0.4" }
 
 internal fun isNewerVersion(candidate: String, current: String): Boolean {
     val left = candidate.split('.').map { it.toIntOrNull() ?: 0 }

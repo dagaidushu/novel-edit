@@ -1,4 +1,4 @@
-# NovelEdit Windows 1.0.3
+# NovelEdit Windows 1.0.4
 
 GitHub 上传说明见 `RELEASE_UPLOAD.md`。安装包和便携版请作为 GitHub Release 附件上传，不要提交进 Git 历史。
 

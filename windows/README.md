@@ -1,4 +1,4 @@
-# NovelEdit Windows 1.0.3
+# NovelEdit Windows 1.0.4
 
 NovelEdit 是本地优先的 Windows 10/11 x64 长篇小说创作工具。安装版数据保存在 `%APPDATA%\NovelEdit`；便携版数据保存在解压目录的 `data`。
 
