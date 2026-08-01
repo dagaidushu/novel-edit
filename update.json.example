@@ -1,0 +1,8 @@
+{
+  "version": "1.0.2",
+  "msiUrl": "https://github.com/YOUR_ACCOUNT/YOUR_REPOSITORY/releases/download/v1.0.2/NovelEdit-1.0.2.msi",
+  "portableUrl": "https://github.com/YOUR_ACCOUNT/YOUR_REPOSITORY/releases/download/v1.0.2/NovelEdit-Windows-x64-portable.zip",
+  "msiSha256": "PUT_THE_MSI_SHA256_HERE",
+  "portableSha256": "PUT_THE_PORTABLE_ZIP_SHA256_HERE",
+  "notes": "更新说明"
+}

@@ -1,0 +1,26 @@
+# Local toolchains and build caches
+.jdk/
+.gradle/
+**/.gradle/
+**/build/
+**/.wrangler/
+**/node_modules/
+
+# Local application data and diagnostics
+data/
+*.db
+*.db-*
+*.log
+
+# Generated release binaries belong in GitHub Releases, not Git history
+release/*.msi
+release/*.zip
+*.msi
+*.zip
+
+# Editor and operating-system files
+.idea/
+.vscode/
+*.iml
+Thumbs.db
+Desktop.ini
