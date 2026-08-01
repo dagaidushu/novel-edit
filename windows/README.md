@@ -1,4 +1,4 @@
-# NovelEdit Windows 1.0.1
+# NovelEdit Windows 1.0.2
 
 NovelEdit 是本地优先的 Windows 10/11 x64 长篇小说创作工具。安装版数据保存在 `%APPDATA%\NovelEdit`；便携版数据保存在解压目录的 `data`。
 
@@ -13,7 +13,7 @@ NovelEdit 是本地优先的 Windows 10/11 x64 长篇小说创作工具。安装
 打包后执行下方命令，可从正式 MSI/ZIP 自动生成 GitHub Release 使用的 `update.json`：
 
 ```powershell
-.\packaging\New-UpdateManifest.ps1 -Version 1.0.1 -Repository YOUR_ACCOUNT/YOUR_REPOSITORY -Notes "更新说明"
+.\packaging\New-UpdateManifest.ps1 -Version 1.0.2 -Repository YOUR_ACCOUNT/YOUR_REPOSITORY -Notes "更新说明"
 ```
 
 上传两个发布包和生成的 `update.json` 到 GitHub Release、Pages 或其他 HTTPS 静态地址，并在应用“设置 - 自动更新”中填入该 JSON 地址。MSI 与便携 ZIP 都有独立 SHA-256 校验值；校验失败的更新包不会打开。

@@ -36,7 +36,7 @@ compose.desktop {
             // omitting a required module such as java.sql.
             includeAllModules = true
             packageName = "NovelEdit"
-            packageVersion = "1.0.1"
+            packageVersion = "1.0.2"
             description = "本地优先的长篇小说创作工作室"
             vendor = "NovelEdit"
             windows {

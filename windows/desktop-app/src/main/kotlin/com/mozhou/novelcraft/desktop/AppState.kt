@@ -8,6 +8,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.net.SocketTimeoutException
+import java.net.ConnectException
 import java.net.UnknownHostException
 import javax.net.ssl.SSLException
 
@@ -68,7 +69,8 @@ class AppState(val paths:AppPaths=AppPaths.resolve()) : AutoCloseable {
     var saveStatus by mutableStateOf(SaveStatus.SAVED); private set
     var modelConfig by mutableStateOf(prefs.load())
     var cloudConfig by mutableStateOf(cloudPrefs.load()); private set
-    var updateManifestUrl by mutableStateOf(updatePrefs.load())
+    var updateManifestUrl by mutableStateOf(updatePrefs.load().manifestUrl)
+    var updateProxyUrl by mutableStateOf(updatePrefs.load().proxyUrl)
     var availableUpdate by mutableStateOf<UpdateInfo?>(null); private set
     var busy by mutableStateOf(false); private set
     var streamedText by mutableStateOf(""); private set
@@ -226,9 +228,9 @@ class AppState(val paths:AppPaths=AppPaths.resolve()) : AutoCloseable {
     fun enableCloudSync(){runTask{val created=withContext(Dispatchers.IO){cloud.createVault()};cloudPrefs.save(created);cloudConfig=created;message="云同步已开启。请保存恢复码：${created.recoveryCode}"}}
     fun restoreCloudSync(code:String){val parts=code.trim().split('.',limit=2);if(parts.size!=2){message="恢复码格式不正确";return};runTask{val restored=CloudSyncConfig(parts[0],parts[1]);withContext(Dispatchers.IO){cloud.list(restored)};cloudPrefs.save(restored);cloudConfig=restored;message="云端保险箱已连接，可恢复缺失作品"}}
     fun restoreCloudProjects(){if(!cloudConfig.enabled){message="请先输入恢复码";return};val localSyncIds=projects.map{it.syncId}.toSet();runTask{val imported=withContext(Dispatchers.IO){var count=0;val revisions=cloudConfig.revisions.toMutableMap();cloud.list(cloudConfig).forEach{remote->if(remote.id !in localSyncIds){val temporary=Files.createTempFile("noveledit-cloud-",".json");try{Files.write(temporary,cloud.download(cloudConfig,remote.id));backup.import(temporary);revisions[remote.id]=remote.revision;count++}finally{Files.deleteIfExists(temporary)}}};count to revisions};cloudConfig=cloudConfig.copy(revisions=imported.second);cloudPrefs.save(cloudConfig);projects=db.projects();message=if(imported.first==0)"云端没有缺失作品" else "已从云端恢复 ${imported.first} 部作品"}}
-    fun saveUpdateManifest(url:String){updatePrefs.save(url);updateManifestUrl=url;message="更新地址已保存"}
-    fun checkForUpdates(notifyWhenLatest:Boolean=true){runTask{val result=withContext(Dispatchers.IO){updates.check(updateManifestUrl,AppVersion.CURRENT)};availableUpdate=result;if(result!=null||notifyWhenLatest)message=if(result==null)"当前已是最新版本" else "发现 NovelEdit ${result.version}"}}
-    fun downloadUpdate(){val update=availableUpdate?:return;runTask{val portable=paths.portable;val extension=if(portable)"zip" else "msi";val target=paths.root.resolve("updates").resolve("NovelEdit-${update.version}.$extension");withContext(Dispatchers.IO){updates.download(update,portable,target);java.awt.Desktop.getDesktop().open(target.toFile())};message="更新包已校验并打开，请按安装程序完成更新"}}
+    fun saveUpdateSettings(url:String,proxy:String){val saved=UpdateSettings(url.trim(),proxy.trim());updatePrefs.save(saved);updateManifestUrl=saved.manifestUrl;updateProxyUrl=saved.proxyUrl;message="更新设置已保存"}
+    fun checkForUpdates(notifyWhenLatest:Boolean=true){runUpdateTask{val result=withContext(Dispatchers.IO){updates.check(updateManifestUrl,AppVersion.CURRENT,updateProxyUrl)};availableUpdate=result;if(result!=null||notifyWhenLatest)message=if(result==null)"当前已是最新版本" else "发现 NovelEdit ${result.version}"}}
+    fun downloadUpdate(){val update=availableUpdate?:return;runUpdateTask{val portable=paths.portable;val extension=if(portable)"zip" else "msi";val target=paths.root.resolve("updates").resolve("NovelEdit-${update.version}.$extension");withContext(Dispatchers.IO){updates.download(update,portable,target,updateProxyUrl);java.awt.Desktop.getDesktop().open(target.toFile())};message="更新包已校验并打开，请按安装程序完成更新"}}
     fun syncSelectedProject(){
         val project=selectedProject?:run{message="请先打开要同步的作品";return}
         if(!cloudConfig.enabled){message="请先在设置中开启云同步";return}
@@ -615,5 +617,12 @@ class AppState(val paths:AppPaths=AppPaths.resolve()) : AutoCloseable {
     private fun launchTextGeneration(task:GenerationTask,block:suspend(GenerationRequest)->String,onSuccess:(String)->Unit){val(epoch,request)=beginGeneration();generationJob=scope.launch{runCatching{block(request)}.onSuccess{if(ownsGeneration(epoch,request))onSuccess(it)}.onFailure{if(it !is CancellationException&&ownsGeneration(epoch,request))message=failureMessage(it)}.also{if(ownsGeneration(epoch,request)){generationRequest=null;generationJob=null;busy=false}}}}
     private fun launchStreamingGeneration(task:GenerationTask,block:suspend(GenerationRequest,(String)->Unit)->String,onSuccess:(String)->Unit){val(epoch,request)=beginGeneration();generationJob=scope.launch{runCatching{block(request){delta->appendStreamDelta(epoch,request,delta)}}.onSuccess{if(ownsGeneration(epoch,request)){onSuccess(it);streamedText=""}}.onFailure{if(it !is CancellationException&&ownsGeneration(epoch,request)){val draft=streamedText;if(draft.isNotBlank()){editContent(editorText+draft);message="${failureMessage(it)}；已保留已接收草稿"}else message=failureMessage(it);streamedText=""}}.also{if(ownsGeneration(epoch,request)){generationRequest=null;generationJob=null;busy=false}}}}
     private fun runTask(block:suspend()->Unit){if(busy)return;busy=true;scope.launch{runCatching{block()}.onFailure{message=failureMessage(it)};busy=false}}
+    private fun runUpdateTask(block:suspend()->Unit){if(busy)return;busy=true;scope.launch{runCatching{block()}.onFailure{message=updateFailureMessage(it)};busy=false}}
+    private fun updateFailureMessage(error:Throwable):String=when{
+        generateSequence(error){it.cause}.any{it is ConnectException}->"无法连接更新服务器；请检查网络，或在更新设置中填写本地 HTTP 代理地址"
+        generateSequence(error){it.cause}.any{it is UnknownHostException}->"无法解析更新服务器地址；请检查 update.json 地址、网络或本地 HTTP 代理"
+        generateSequence(error){it.cause}.any{it is SocketTimeoutException}->"连接更新服务器超时；请检查网络或本地 HTTP 代理"
+        else->error.message?:"更新检查失败"
+    }
     override fun close(){flushSave();workspaceLayoutStore.save(workspaceLayout);importAnalysisRequest?.cancel();scope.cancel();db.close()}
 }

@@ -874,6 +874,7 @@ private fun ReviewPanelV2(state: AppState) {
     var config by remember(state.modelConfig) { mutableStateOf(state.modelConfig) }
     var recoveryCode by remember { mutableStateOf("") }
     var updateUrl by remember(state.updateManifestUrl) { mutableStateOf(state.updateManifestUrl) }
+    var updateProxy by remember(state.updateProxyUrl) { mutableStateOf(state.updateProxyUrl) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(32.dp)) {
         Text("模型设置", fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
         Text("密钥使用 Windows DPAPI 加密保存在本机", color = Color.Gray)
@@ -929,9 +930,12 @@ private fun ReviewPanelV2(state: AppState) {
         Text("自动更新", fontSize = 20.sp, fontWeight = FontWeight.Medium)
         OutlinedTextField(updateUrl, { updateUrl = it }, Modifier.fillMaxWidth(), label = { Text("GitHub update.json 地址") }, singleLine = true)
         Spacer(Modifier.height(8.dp))
+        OutlinedTextField(updateProxy, { updateProxy = it }, Modifier.fillMaxWidth(), label = { Text("更新代理地址（可选，例如 http://127.0.0.1:10808）") }, singleLine = true)
+        Text("仅更新检查和下载会使用此代理；端口由每位用户自己的节点软件决定。", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+        Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton({ state.saveUpdateManifest(updateUrl) }) { Icon(Icons.Outlined.Save, null); Text("保存更新地址") }
-            OutlinedButton({ state.saveUpdateManifest(updateUrl); state.checkForUpdates() }, enabled = !state.busy && updateUrl.isNotBlank()) { Icon(Icons.Outlined.SystemUpdate, null); Text("检查更新") }
+            OutlinedButton({ state.saveUpdateSettings(updateUrl, updateProxy) }) { Icon(Icons.Outlined.Save, null); Text("保存更新设置") }
+            OutlinedButton({ state.saveUpdateSettings(updateUrl, updateProxy); state.checkForUpdates() }, enabled = !state.busy && updateUrl.isNotBlank()) { Icon(Icons.Outlined.SystemUpdate, null); Text("检查更新") }
             state.availableUpdate?.let { Button(state::downloadUpdate, enabled = !state.busy) { Icon(Icons.Outlined.Download, null); Text("下载 ${it.version}") } }
         }
         Spacer(Modifier.height(28.dp))

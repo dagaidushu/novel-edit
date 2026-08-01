@@ -12,9 +12,8 @@ data/
 *.db-*
 *.log
 
-# Generated release binaries belong in GitHub Releases, not Git history
-release/*.msi
-release/*.zip
+# Generated release files belong in GitHub Releases, not Git history
+release/
 *.msi
 *.zip
 

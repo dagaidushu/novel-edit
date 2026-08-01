@@ -1,4 +1,4 @@
-# NovelEdit Windows 1.0.1
+# NovelEdit Windows 1.0.2
 
 GitHub 上传说明见 `RELEASE_UPLOAD.md`。安装包和便携版请作为 GitHub Release 附件上传，不要提交进 Git 历史。
 
@@ -6,7 +6,7 @@ Windows 桌面版源码位于 `windows`，可直接使用的安装包和便携�
 
 ## 使用
 
-- 安装版：运行 `release\NovelEdit-1.0.1.msi`。
+- 安装版：运行 `release\NovelEdit-1.0.2.msi`。
 - 便携版：解压 `release\NovelEdit-Windows-x64-portable.zip`，运行 `NovelEdit-Portable.cmd`。
 - 安装版数据保存在 `%APPDATA%\NovelEdit`；便携版数据保存在解压目录的 `data` 文件夹。
 
@@ -20,7 +20,7 @@ Windows 桌面版源码位于 `windows`，可直接使用的安装包和便携�
 
 ## 自动更新
 
-打包后执行 `windows\packaging\New-UpdateManifest.ps1 -Version 1.0.1 -Repository YOUR_ACCOUNT/YOUR_REPOSITORY`，即可从正式 MSI/ZIP 自动生成 GitHub Release 使用的 `update.json`。上传发布包和该 JSON 后，将其 HTTPS 地址填入应用“设置 - 自动更新”。
+打包后执行 `windows\packaging\New-UpdateManifest.ps1 -Version 1.0.2 -Repository YOUR_ACCOUNT/YOUR_REPOSITORY`，即可从正式 MSI/ZIP 自动生成 GitHub Release 使用的 `update.json`。上传发布包和该 JSON 后，将其 HTTPS 地址填入应用“设置 - 自动更新”；网络受限用户可选填自己本机的 HTTP 代理地址。
 
 `update.json` 必须同时提供 MSI 和便携 ZIP 各自的校验值，示例见 `release\update.json.example`。应用下载后会校验 SHA-256，校验失败的文件不会保留或打开。
 

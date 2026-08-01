@@ -15,7 +15,7 @@ class ProjectBackup(private val db:DesktopDatabase,private val paths:AppPaths){
         project["coverPath"]=""
         val data=JSONObject().put("project",mapJson(project));DesktopDatabase.PROJECT_TABLES.sorted().forEach{table->data.put(table,rowsJson(db.rawRows(table,projectId)))};data.put("style_profiles",rowsJson(db.rawStyleProfiles(projectId)));data.put("coverBase64",cover?.let{Base64.getEncoder().encodeToString(it)}?:"")
         val payload=canonical(data)
-        val root=JSONObject().put("format",FORMAT).put("version",2).put("createdBy","NovelEdit Windows 1.0.1").put("checksum",sha256(payload)).put("data",data)
+        val root=JSONObject().put("format",FORMAT).put("version",2).put("createdBy","NovelEdit Windows 1.0.2").put("checksum",sha256(payload)).put("data",data)
         atomicWrite(path,root.toString(2).toByteArray(StandardCharsets.UTF_8))
     }
     fun import(path:Path):Long{
