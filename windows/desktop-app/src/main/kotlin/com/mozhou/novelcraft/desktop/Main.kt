@@ -941,6 +941,14 @@ private fun ReviewPanelV2(state: AppState) {
         Spacer(Modifier.height(28.dp))
         Text("数据目录", fontWeight = FontWeight.SemiBold)
         Text(state.paths.root.toString(), color = Color.Gray)
+        if (state.paths.portable) {
+            Text("便携版的数据随启动器保存在解压目录的 data 文件夹。请从 ZIP 外层运行 NovelEdit-Portable.cmd。", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+        } else {
+            OutlinedButton({ pickDirectory()?.let(state::changeDataDirectory) }, modifier = Modifier.padding(top = 8.dp)) {
+                Icon(Icons.Outlined.FolderOpen, null); Text("迁移数据目录")
+            }
+            Text("请选择空文件夹；保存后退出并重新打开应用，现有数据会自动迁移。", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+        }
     }
 }
 
@@ -948,3 +956,4 @@ private fun ReviewPanelV2(state: AppState) {
 @Composable private fun CreateProjectDialog(onDismiss:()->Unit,onCreate:(String,String,String)->Unit){var title by remember{mutableStateOf("")};var genre by remember{mutableStateOf("")};var premise by remember{mutableStateOf("")};AlertDialog(onDismissRequest=onDismiss,title={Text("新建作品")},text={Column{Field("作品名称",title){title=it};Field("类型",genre){genre=it};Field("核心设定",premise,4){premise=it}}},confirmButton={Button({onCreate(title,genre,premise)},enabled=title.isNotBlank()){Text("创建")}},dismissButton={TextButton(onDismiss){Text("取消")}})}
 private fun pickOpen(ext:List<String>):Path?{val d=FileDialog(null as Frame?,"导入文档",FileDialog.LOAD);d.isVisible=true;return d.file?.let{Path.of(d.directory,it)}}
 private fun pickSave(default:String):Path?{val d=FileDialog(null as Frame?,"保存文件",FileDialog.SAVE);d.file=default;d.isVisible=true;return d.file?.let{Path.of(d.directory,it)}}
+private fun pickDirectory():Path?{val chooser=javax.swing.JFileChooser();chooser.fileSelectionMode=javax.swing.JFileChooser.DIRECTORIES_ONLY;chooser.dialogTitle="选择新的数据目录（必须为空文件夹）";return if(chooser.showOpenDialog(null)==javax.swing.JFileChooser.APPROVE_OPTION)chooser.selectedFile.toPath()else null}
